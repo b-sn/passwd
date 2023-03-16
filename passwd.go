@@ -5,7 +5,6 @@ import (
 )
 
 type CharSet [8]uint32
-type CharSets []CharSet
 
 var (
 	LowerLetters = CharSet{0, 0, 0, 134217726}                    // a-z
@@ -21,20 +20,26 @@ var (
 	Strong       = CharSet{0, 2952748286, 3355443199, 1207959550} // AlphaNumeric + Special + Underline
 )
 
-func MyCharSet(s string) CharSet {
-	var mask CharSet
+func MyCharSet(s string) (mask CharSet) {
 	for _, ch := range s {
 		mask[ch/32] |= 1 << (uint32(ch) % 32)
 	}
-	return mask
+	return
 }
 
-func GetGenerator(charSets ...CharSet) func(size uint8) string {
+func GetGenerator(sets ...CharSet) func(size uint8) string {
+
 	var mask CharSet
-	for _, set := range charSets {
-		for i := 0; i < 8; i++ {
-			mask[i] |= set[i]
+
+	if len(sets) > 0 {
+		mask = sets[0]
+		for _, set := range sets[1:] {
+			for i := 0; i < 8; i++ {
+				mask[i] |= set[i]
+			}
 		}
+	} else {
+		mask = Strong
 	}
 
 	return func(size uint8) string {
