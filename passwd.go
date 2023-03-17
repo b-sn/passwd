@@ -27,42 +27,46 @@ func MyCharSet(s string) (mask CharSet) {
 	return
 }
 
+func MergeSets(sets []CharSet) CharSet {
+
+	if len(sets) == 0 {
+		sets = []CharSet{Strong}
+	}
+
+	var res CharSet = sets[0]
+
+	for _, set := range sets[1:] {
+		for i, val := range set {
+			res[i] |= val
+		}
+	}
+
+	return res
+}
+
 func GetGenerator(sets ...CharSet) func(size uint8) string {
 
-	var mask CharSet
-
-	if len(sets) > 0 {
-		mask = sets[0]
-		for _, set := range sets[1:] {
-			for i := 0; i < 8; i++ {
-				mask[i] |= set[i]
-			}
-		}
-	} else {
-		mask = Strong
-	}
+	var mask CharSet = MergeSets(sets)
 
 	return func(size uint8) string {
 		res := make([]byte, size)
-		var index uint8
 		buffer := make([]byte, int(size)*4)
 
-		for index < size {
+		for {
 			_, err := rand.Read(buffer)
 			if err != nil {
 				return ""
 			}
-			for i, ch := range buffer {
-				if (mask[ch/32]>>(ch%32))&1 == 0 || i%3 != 0 {
+			for _, ch := range buffer {
+				if (mask[ch/32]>>(ch%32))&1 == 0 {
 					continue
 				}
-				res[index] = ch
-				index++
-				if index == size {
-					break
+				size--
+				res[size] = ch
+				if size == 0 {
+					return string(res)
 				}
 			}
 		}
-		return string(res)
 	}
 }
