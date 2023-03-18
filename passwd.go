@@ -44,11 +44,14 @@ func MergeSets(sets []CharSet) CharSet {
 	return res
 }
 
-func GetGenerator(sets ...CharSet) func(size uint8) string {
+func GetGenerator(sets ...CharSet) func(size uint16) string {
 
 	var mask CharSet = MergeSets(sets)
 
-	return func(size uint8) string {
+	return func(size uint16) string {
+		if size == 0 {
+			return ""
+		}
 		res := make([]byte, size)
 		buffer := make([]byte, int(size)*4)
 
